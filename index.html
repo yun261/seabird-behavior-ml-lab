@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="用真实的2秒三轴加速度数据，体验海鸟行为识别中的数据、特征、模型和评价。">
+  <title>海鸟行为识别交互实验室</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2285%22>🐦</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#home"><span class="brand-mark" aria-label="海鸟图标"><svg style="width:27px;height:27px;fill:currentColor" viewBox="0 0 64 64" aria-hidden="true"><path d="M8 40c8-13 16-18 25-12 6-8 14-10 23-6-7 3-11 7-13 12-4 12-19 18-35 6Z"/><path d="M30 30c-7-8-14-9-21-5 7 1 12 5 16 11Z"/></svg></span><span>海鸟行为识别交互实验室</span></a>
+    <div class="mode-switch" aria-label="体验模式"><button class="active" data-mode="guided">跟着步骤学</button><button data-mode="free">自由探索</button></div>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <p class="eyebrow">学习进度</p><div class="progress"><i id="progressBar"></i></div><p id="progressText">0 / 6 尚未开始</p>
+      <nav id="nav">
+        <a href="#home" class="active">起点 · 学习路线</a><a href="#data">1 · 看看数据</a><a href="#window">2 · 认识窗口</a><a href="#xgb">3 · XGBoost</a><a href="#dclsa">4 · DCL-SA</a><a href="#compare">5 · 模型比较</a><a href="#challenge">6 · 挑战模型</a>
+      </nav>
+      <div class="data-note"><strong>真实数据</strong><span>25 Hz · 每窗 50 点<br>六类海鸟行为</span></div>
+    </aside>
+    <main>
+      <section id="home" class="hero station">
+        <div><p class="eyebrow coral">SEABIRD BEHAVIOR · ML LAB</p><h1>用 2 秒数据，<br><em>看懂模型如何判断。</em></h1><p class="lead">从三轴加速度曲线出发，亲手走过特征工程、深度学习与模型评价。无需代码，也不需要机器学习基础。</p><button class="primary" data-go="data">开始体验 <span>→</span></button></div>
+        <div class="route-card">
+          <div class="route-input"><b>三轴加速度</b><span>acc_x · acc_y · acc_z</span></div><div class="arrow">↓</div><div class="window-chip">2 秒 · 50 个采样点</div><div class="split"><div><span>传统路线</span><b>119 个特征</b><strong>XGBoost</strong></div><div><span>深度路线</span><b>原始曲线</b><strong>DCL-SA</strong></div></div><div class="arrow">↓</div><div class="six">六类行为判断</div>
+        </div>
+        <div class="path-strip"><span>01 看数据</span><span>02 截窗口</span><span>03 看特征</span><span>04 看曲线</span><span>05 找弱点</span><span>06 来挑战</span></div>
+      </section>
+
+      <section id="data" class="station"><div class="station-head"><span>第 1 站 / 6</span><h2>看看海鸟的数据</h2><p>机器学习看到的不是“飞翔”这个词，而是一串随时间变化的数字。</p></div>
+        <div class="control-row"><label>选择一种行为<select id="dataClass"></select></label><button class="secondary" id="newDataSample">换一个真实样本</button></div>
+        <div class="chart-card"><div class="chart-meta"><div><b id="dataSampleId">—</b><span id="dataAnimal">—</span></div><div class="legend"><i class="x"></i>前后 acc_x <i class="y"></i>左右 acc_y <i class="z"></i>上下 acc_z</div></div><canvas id="dataChart" role="img" aria-label="三轴加速度曲线"></canvas></div>
+        <div class="observe"><h3>你觉得这一段运动剧烈吗？</h3><div class="choices" id="intensity"><button>比较平稳</button><button>有明显波动</button><button>波动很剧烈</button></div><p class="feedback" hidden>没有唯一标准答案。继续看看模型如何利用这些波动信息。</p></div>
+        <div class="tip"><b>你刚刚学到了什么？</b><span>加速度计把海鸟的运动记录成三个方向的连续数值；曲线形状就是模型的原始线索。</span></div><button class="next" data-go="window">下一站：模型一次看多少数据？ →</button>
+      </section>
+
+      <section id="window" class="station"><div class="station-head"><span>第 2 站 / 6</span><h2>模型一次看多少数据？</h2><p>我们把连续记录切成固定长度的小窗口，让模型一次专注于一小段动作。</p></div>
+        <div class="math-flow"><div><b>25 Hz</b><span>每秒记录 25 次</span></div><i>×</i><div><b>2 秒</b><span>一个观察窗口</span></div><i>=</i><div class="result"><b>50 点</b><span>模型的一次输入</span></div></div>
+        <button class="primary" id="generateWindow">生成一个 2 秒窗口</button><div class="chart-card compact"><canvas id="windowChart"></canvas></div>
+        <div class="guess-panel"><h3>只看曲线，你觉得海鸟在做什么？</h3><div class="choices behavior-choices" id="windowChoices"></div><button class="secondary" id="revealWindow" disabled>看看答案</button><div id="windowAnswer" class="answer" hidden></div></div>
+        <div class="tip"><b>你刚刚学到了什么？</b><span>模型处理的不是一整天的数据，而是一个个固定长度的 2 秒窗口。</span></div><button class="next" data-go="xgb">下一站：让 XGBoost 猜一猜 →</button>
+      </section>
+
+      <section id="xgb" class="station"><div class="station-head"><span>第 3 站 / 6</span><h2>路线一：先把曲线变成特征</h2><p>传统机器学习先把曲线总结成一组数字，再交给模型判断。</p></div>
+        <div class="pipeline"><b>2 秒曲线</b><i>→</i><b>119 个动作指标</b><i>→</i><b class="accent">XGBoost</b><i>→</i><b>行为判断</b></div>
+        <div class="two-col"><div class="chart-card"><canvas id="xgbChart"></canvas><button class="primary small" id="makeFeatures">把曲线变成特征</button></div><div id="featurePanel" class="feature-panel muted"><h3>代表性特征</h3><p>点击左侧按钮，看看这段曲线会变成哪些数字。</p></div></div>
+        <details><summary>查看全部 119 个特征</summary><div id="allFeatures" class="feature-grid"></div></details>
+        <div class="importance"><div><p class="eyebrow">真实模型结果</p><h3>模型整体上主要参考了什么？</h3><p>下图来自 28 折结果的平均特征重要性。它表示模型整体更常依赖哪些信息，不等同于单一样本的因果解释。</p></div><div id="importanceBars" class="bars"></div></div>
+        <div class="tip"><b>你刚刚学到了什么？</b><span>传统机器学习通常先把原始曲线转换成特征，再进行分类。</span></div><button class="next" data-go="dclsa">下一站：让深度学习看曲线 →</button>
+      </section>
+
+      <section id="dclsa" class="station"><div class="station-head"><span>第 4 站 / 6</span><h2>路线二：让模型直接看曲线</h2><p>DCL-SA 不需要先读 119 个手工指标，而是从原始时间序列中学习模式。</p></div>
+        <div class="deep-flow"><div><span>输入</span><b>原始 2 秒曲线</b></div><i>→</i><div><span>CNN</span><b>寻找局部波形</b></div><i>→</i><div><span>LSTM</span><b>理解时间顺序</b></div><i>→</i><div><span>Self-Attention</span><b>关注重要片段</b></div></div>
+        <div class="chart-card"><canvas id="dclChart"></canvas></div><div class="honesty"><b>为什么这里没有显示单样本概率？</b><p>当前数据包中的原始窗口、XGBoost 特征与两套模型的测试输出没有保存可验证的一一对应编号。网页只展示能够追溯的真实结果，不拼接或伪造概率。</p></div>
+        <div class="tip"><b>你刚刚学到了什么？</b><span>深度学习可以直接从原始时间序列中自动学习模式，和“先做特征”的路线不同。</span></div><button class="next" data-go="compare">下一站：两个模型谁更好？ →</button>
+      </section>
+
+      <section id="compare" class="station"><div class="station-head"><span>第 5 站 / 6</span><h2>两个模型谁更好？</h2><p>先看整体分数，再看每一类错在哪里。一个数字永远讲不完整模型表现。</p></div>
+        <div class="pre-question"><b>如果只看 Accuracy，你觉得哪个模型更好？</b><div class="choices" id="modelGuess"><button>XGBoost</button><button>DCL-SA</button></div></div>
+        <div id="metrics" class="metrics"></div><p class="metric-note">Macro F1（宏平均 F1）：先分别计算每一类，再让每个类别同等参与平均。类别不平衡时，它比只看 Accuracy 更能反映少数类表现。</p>
+        <div class="matrix-tabs"><button class="active" data-model="xgboost">XGBoost 混淆矩阵</button><button data-model="dclsa">DCL-SA 混淆矩阵</button></div><div class="matrix-wrap"><div id="matrix"></div><div class="matrix-help"><b>怎样阅读？</b><p>每一行是真实行为，每一列是模型预测。对角线越深，代表正确识别越多；把鼠标放在格子上可查看数量。</p><div id="weakness"></div></div></div>
+        <div class="tip"><b>你刚刚学到了什么？</b><span>Accuracy 高不代表每一个类别都识别得好；混淆矩阵能告诉我们模型具体错在哪里。</span></div><button class="next" data-go="challenge">下一站：挑战一下自己 →</button>
+      </section>
+
+      <section id="challenge" class="station"><div class="station-head"><span>第 6 站 / 6</span><h2>挑战模型，也挑战你的观察力</h2><p>系统会抽取真实窗口。先凭曲线判断，再揭晓实际行为。</p></div>
+        <div class="score"><span>本次浏览器体验</span><b id="humanScore">你猜对了 0 / 0</b></div><div class="chart-card"><canvas id="challengeChart"></canvas></div><div class="guess-panel"><div class="choices behavior-choices" id="challengeChoices"></div><button class="primary" id="challengeReveal" disabled>揭晓答案</button><div id="challengeAnswer" class="answer" hidden></div><button class="secondary" id="challengeNext">再来一个</button></div>
+        <div class="complete"><span>✓</span><div><b>你已经完成了整个海鸟行为识别体验。</b><p>现在你已经知道：数据怎样进入模型、两条建模路线有何不同，以及为什么评价模型不能只看一个数字。</p></div></div>
+      </section>
+      <footer>数据来源：本项目真实海鸟加速度窗口与已保存模型测试结果 · 本页面不进行模型重新训练</footer>
+    </main>
+  </div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="data.js"></script><script src="app.js"></script>
+</body>
+</html>
